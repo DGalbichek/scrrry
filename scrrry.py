@@ -1,7 +1,8 @@
 #
 #   scrrry
 #   (a scraping framework)
-#   version 0.2.1
+#
+VERSION='0.2.1'
 #
 #   https://github.com/DGalbichek/scrrry/
 #
@@ -21,8 +22,17 @@ import time
 RE_EMAIL = r'''([a-zA-Z0-9\._%+-]+@[a-zA-Z0-9\.-]+(?:\.[a-zA-Z]{2,4})+)'''
 
 class Scrape_Db():
-    def __init__(self,task_name):
+    def __init__(self,task_name,ver_check=True):
         self.tim=[[time.time(),],]
+        #check version
+        if ver_check:
+            try:
+                v=requests.get('https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py').text.split("VERSION='")[1].split("'")[0]
+                if v!=VERSION:
+                    print('current/latest version discrepancy:',VERSION,'/',v)
+                    print('(https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py)')
+            except:
+                print('Version check failed.')
         self.task_name=task_name
         self.db = sqlite3.connect(self.task_name+'-db.sqlite')
         self.cursor = self.db.cursor()
@@ -39,6 +49,8 @@ class Scrape_Db():
         except Exception as e:
             self.db.rollback()
             raise e
+        if self.getVariable('scrrryMeta')=='---'
+            self.setVariable('scrrryMeta',{'versionCreatedWith':VERSION,'creationTimestamp':datetime.datetime.now().timestamp()})
 
     ##
     ##  VARIABLES
@@ -55,14 +67,14 @@ class Scrape_Db():
         self.db.commit()
 
 
-    def getVariable(self,var,val='---'):
+    def getVariable(self,var,novar='---'):
         """Retreives value of variable or returns a default if doesn't exist yet.
         """
         if self.cursor.execute('''SELECT variable_content FROM variables WHERE variable_name=?;''',(var,)).fetchone():
             #print self.cursor.execute('''SELECT variable_content FROM variables WHERE variable_name=?;''',(var,)).fetchone()[0]
             return json.loads(self.cursor.execute('''SELECT variable_content FROM variables WHERE variable_name=?;''',(var,)).fetchone()[0])
         else:
-            return val
+            return novar
 
 
     def listVariables(self):
