@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 #
 #   scrrry
 #   (a scraping framework)
@@ -9,7 +11,6 @@ VERSION='0.2.1'
 #   MIT License, Copyright (c) 2017 David Galbicsek
 #
 
-from __future__ import print_function
 from lxml import html
 import datetime
 import json
@@ -29,8 +30,8 @@ class Scrape_Db():
             try:
                 v=requests.get('https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py').text.split("VERSION='")[1].split("'")[0]
                 if v!=VERSION:
-                    print('current/latest version discrepancy:',VERSION,'/',v)
-                    print('(https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py)')
+                    print('!! current/latest version discrepancy:',VERSION,'/',v)
+                    print('!! (https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py)')
             except:
                 print('Version check failed.')
         self.task_name=task_name
@@ -49,8 +50,10 @@ class Scrape_Db():
         except Exception as e:
             self.db.rollback()
             raise e
-        if self.getVariable('scrrryMeta')=='---'
-            self.setVariable('scrrryMeta',{'versionCreatedWith':VERSION,'creationTimestamp':datetime.datetime.now().timestamp()})
+        if self.getVariable('scrrryMeta')=='---':
+            t=datetime.datetime.now()
+            ts=int(time.mktime(t.timetuple())+t.microsecond/1000000.0)
+            self.setVariable('scrrryMeta',{'versionCreatedWith':VERSION,'creationTimestamp':ts})
 
     ##
     ##  VARIABLES
