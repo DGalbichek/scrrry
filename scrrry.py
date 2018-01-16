@@ -4,7 +4,7 @@ from __future__ import print_function
 #   scrrry
 #   (a scraping framework)
 #
-VERSION='0.2.1'
+VERSION='0.2.2'
 #
 #   https://github.com/DGalbichek/scrrry/
 #
@@ -12,8 +12,10 @@ VERSION='0.2.1'
 #
 
 from lxml import html
+
 import datetime
 import json
+import math
 import pandas as pd
 import re
 import requests
@@ -22,38 +24,52 @@ import time
 
 RE_EMAIL = r'''([a-zA-Z0-9\._%+-]+@[a-zA-Z0-9\.-]+(?:\.[a-zA-Z]{2,4})+)'''
 
+def algofunctMultiWrapper(tup):
+    return [tup[0](tup[1][x]) for x in range(tup[2][0],tup[2][1])]
+
+
 class Scrape_Db():
-    def __init__(self,task_name,ver_check=True):
-        self.tim=[[time.time(),],]
+    def __init__(self,task_name,ver_check=True,multicall=False):
+        if not multicall:
+            self.tim=[[time.time(),],]
+            self.currenttimestamp=datetime.datetime.now().strftime("%c")
+
         #check version
         if ver_check:
+            print('## -= scrrry v'+VERSION+' =-',end=' ')
             try:
                 v=requests.get('https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py').text.split("VERSION='")[1].split("'")[0]
-                if v!=VERSION:
-                    print('!! current/latest version discrepancy:',VERSION,'/',v)
+                if v==VERSION:
+                    print('(Up to date.)')
+                else:
+                    print('\n!! current/latest version discrepancy:',VERSION,'/',v)
                     print('!! (https://raw.githubusercontent.com/DGalbichek/scrrry/master/scrrry.py)')
             except:
-                print('Version check failed.')
+                print('(Online version check failed.)')
+
         self.task_name=task_name
         self.db = sqlite3.connect(self.task_name+'-db.sqlite')
         self.cursor = self.db.cursor()
-        try:
-            self.cursor.execute('''
-                CREATE TABLE IF NOT EXISTS variables( id INTEGER PRIMARY KEY, variable_name TEXT, variable_content TEXT);
-                ''')
-            self.cursor.execute('''
-                CREATE TABLE IF NOT EXISTS scrapedata( id INTEGER PRIMARY KEY, added_date TIMESTAMP,
-                        scrape_task_uid TEXT, scrape_task_type TEXT, scrape_task_content TEXT, skip BOOLEAN,
-                        scrape_date TIMESTAMP, content TEXT);
-                ''')
-            self.db.commit()
-        except Exception as e:
-            self.db.rollback()
-            raise e
-        if self.getVariable('scrrryMeta')=='---':
-            t=datetime.datetime.now()
-            ts=int(time.mktime(t.timetuple())+t.microsecond/1000000.0)
-            self.setVariable('scrrryMeta',{'versionCreatedWith':VERSION,'creationTimestamp':ts})
+
+        if not multicall:
+            try:
+                self.cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS variables( id INTEGER PRIMARY KEY, variable_name TEXT, variable_content TEXT);
+                    ''')
+                self.cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS scrapedata( id INTEGER PRIMARY KEY, added_date TIMESTAMP,
+                            scrape_task_uid TEXT, scrape_task_type TEXT, scrape_task_content TEXT, skip BOOLEAN,
+                            scrape_date TIMESTAMP, content TEXT);
+                    ''')
+                self.db.commit()
+            except Exception as e:
+                self.db.rollback()
+                raise e
+
+            if self.getVariable('scrrryMeta')=='---':
+                self.setVariable('scrrryMeta',{'versionCreatedWith':VERSION,'creationDateTime':datetime.datetime.now().strftime("%c")})
+            self.setVariable('scrrryLog-'+self.currenttimestamp,json.dumps(self.tim))
+
 
     ##
     ##  VARIABLES
@@ -91,29 +107,39 @@ class Scrape_Db():
     ##
     ##  MANAGEMENT
     ##
-    def tick(self,total=False,display=True,newcycle=False,scripttotal=False):
+    def tick(self,total=False,display=True,newcycle=False,scripttotal=False,currenttime=False):
         """Timekeeping function.
         """
-        if newcycle or scripttotal:
+
+        if newcycle or scripttotal: # tick in new time segment
             self.tim.append([time.time(),])
-        else:
+        else: # tick in ongoing segment
             self.tim[-1].append(time.time())
-        if total:
+
+        # saving time log
+        self.setVariable('scrrryLog-'+self.currenttimestamp,json.dumps(self.tim))
+
+        if total: # segment total
             t=self.tim[-1][-1]-self.tim[-1][0]
         else:
-            if len(self.tim[-1])==1 and not scripttotal:
-                t=-5
-            elif scripttotal:
+            if len(self.tim[-1])==1 and not scripttotal: # no diff for single value segment
+                display=False
+            elif scripttotal: # script total
                 t=self.tim[-1][-1]-self.tim[0][0]
-            else:
+            else: # time since last tick
                 t=self.tim[-1][-1]-self.tim[-1][-2]
-        th=int(t/3600)
-        tm=int(t/60)%60
-        ts=t%60
-        if display and t!=-5:
-            return "%ih %im %.2fs" % (th,tm,ts)
+
+        if display:
+            th=int(t/3600)
+            tm=int(t/60)%60
+            ts=t%60
+            r = "%ih %im %.2fs" % (th,tm,ts)
         else:
-            return ''
+            r= ''
+
+        if currenttime:
+            r+=datetime.datetime.now().strftime(" (%c)")
+        return r.strip()
 
 
     def tc_done(self,standalone=False):
@@ -168,39 +194,67 @@ class Scrape_Db():
         return kkk
 
 
-    def taskCycle(self,algofunct,iterr='def',display={'type':'verbose','freq':1,'tick':0},unfold='',checktodo=False,nosubmit=False):
-        """Wrapper for gather and scrape tasks. Includes time and output management.
+    def taskCycle(self,algofunct,iterr='def',display={'type':'verbose','freq':1,'tick':0},
+                  unfold='',checktodo=False,nosubmit=False,multi={}):
+        """Wrapper for gather and scrape tasks. Deals with time and output management.
         """
-        self.tick(display=False,newcycle=True)
+
+        # Cycle start
+        ti=self.tick(display=False,newcycle=True,currenttime=True)
         if iterr=='def':
             iterr=self.toDo()
         print()
-        if 'name' in display.keys() and display['name']:
+        if 'name' in display.keys() and display['name']: # optional name for cycle
             print('## <[',display['name'],']>',sep=' ')
-        print('##',algofunct.__name__,' cycle begins -',len(iterr),'elements -',sep=' ')
+        print('##',algofunct.__name__,' cycle begins -',len(iterr),'elements -',ti,sep=' ')
         print('##')
 
         self.tc_ndone,self.tc_nwasdone,self.tc_nskipped,self.tc_nnodata=0,0,0,0
         self.tc_disptype=display['type']
         data=[]
 
-        for n,it in enumerate(iterr):
+        def preprint(n,it):
+            # whether or not display task name
             if display['freq']==1 or (n+1)%display['freq']==0:
                 if display['type']=='verbose':
                     print(n+1,it,sep=' ',end=' ')
                 elif display['type']=='brief':
                     pass
 
+        def postprint(n,multi=False):
+            # outputting prompt of completion
+            if not multi:
+                if display['type']!='none' and (display['freq']==1 or (n+1)%display['freq']==0):
+                    print(pr,end=' ')
 
-            # GATHER
-            if algofunct.__name__=='gatherTask':
+
+            if multi or display['tick']!=0 and n%display['tick']==display['tick']-1:
+                if display['type']=='verbose':
+                    print('##',self.tick(),sep=' ',end=' ')
+                elif display['type']=='brief':
+                    perc='['+str(int(float(n+1)/len(iterr)*100))+'%]' # percentage
+                    print(str(n+1)+perc+'('+self.tick()+')',end=' ')
+
+
+
+        # Core loop - GATHER
+        if algofunct.__name__=='gatherTask':
+            for n,it in enumerate(iterr):
+                preprint(n,it)
+
                 if not checktodo or (checktodo and it not in self.toDo()):
                     pr=algofunct(it)
                 else:
                     pr=self.tc_wasdone()
 
-            # SCRAPE
-            elif algofunct.__name__=='scrapeTask':
+                postprint(n)
+
+
+        # Core loop - SCRAPE - single thread
+        elif algofunct.__name__=='scrapeTask' and not multi:
+            for n,it in enumerate(iterr):
+                preprint(n,it)
+
                 wasdone=self.istoDo(it)
                 if wasdone and wasdone!='SKIP':
                     if unfold:
@@ -212,7 +266,7 @@ class Scrape_Db():
                 elif wasdone=='SKIP':
                     pr=self.tc_skipped(wasdone)
                 else:
-                    dii=algofunct(it,n)
+                    dii=algofunct(it)
                     if dii:
                         if unfold:
                             for d in self.tc_unfold(dii,unfold):
@@ -227,18 +281,50 @@ class Scrape_Db():
                     else:
                         pr=self.tc_nodata()
 
-            if display['type']!='none' and (display['freq']==1 or (n+1)%display['freq']==0):
-                print(pr,end=' ')
+                postprint(n)
 
 
-            if display['tick']!=0 and n%display['tick']==display['tick']-1:
-                if display['type']=='verbose':
-                    print('##',self.tick(),sep=' ',end=' ')
-                elif display['type']=='brief':
-                    print(str(n+1)+'('+self.tick()+')',end=' ')
+        # Core loop - SCRAPE - multi thread
+        elif algofunct.__name__=='scrapeTask' and multi:
+            LIMIT=len(iterr)
+            BATCHSIZE=multi['batchsize']
+            NOOFPROC=multi['noofproc']
+            print('** POOL PARTY! ** '+str(BATCHSIZE)+'/'+str(NOOFPROC),end='')
+
+            from multiprocessing import Pool
+            pool = Pool(processes=NOOFPROC)
+            #print('limit',LIMIT,'batch',BATCHSIZE,'noofproc',NOOFPROC,'-',math.ceil(LIMIT/BATCHSIZE))
+            # batch creation
+            for nn in range(int(math.ceil(LIMIT/BATCHSIZE))):
+                #print(nn,(nn*BATCHSIZE,nn*BATCHSIZE+BATCHSIZE,))
+                b1,b2=[],[]
+                for rrr in range(NOOFPROC):
+                    st=nn*BATCHSIZE+BATCHSIZE/NOOFPROC*rrr
+                    if st<LIMIT:
+                        b1.append(st)
+                        en=nn*BATCHSIZE+BATCHSIZE/NOOFPROC*(rrr+1)
+                        if en>LIMIT:
+                            b2.append(LIMIT)
+                        else:
+                            if rrr+1==NOOFPROC:
+                                b2.append((nn+1)*BATCHSIZE)
+                            else:
+                                b2.append(en)
+                b1=[int(x) for x in b1]
+                b2=[int(x) for x in b2]
+                #print(b1,b2)
+                print()
+                print(list(zip(b1,b2)),end=' === ')
+
+                res=pool.map_async(algofunctMultiWrapper, [(algofunct, iterr, x) for x in zip(b1,b2)])
+                for r in res.get():
+                    for rr in r:
+                        data.append(rr)
+
+                postprint(min((nn+1)*BATCHSIZE-1,LIMIT-1), multi=True)
 
 
-        #print 'eo cyc'
+        # Cycle end
         if display['type']=='brief':
             print()
         print('##\n##',algofunct.__name__,'task cycle complete -',sep=' ',end=' ')
@@ -251,7 +337,7 @@ class Scrape_Db():
             stats+='/s'+str(self.tc_nskipped)
         if self.tc_nnodata:
             stats+='/x'+str(self.tc_nnodata)
-        print(stats,'-',self.tick(total=True),sep=' ',end=' ')
+        print(stats,'-',self.tick(total=True, currenttime=True),sep=' ')
 
         #list of column names
         if data:
