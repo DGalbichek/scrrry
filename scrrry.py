@@ -486,7 +486,7 @@ class Scrape_Db():
 
 
 
-    def selenium(self,driver,header=[],options=[]):
+    def selenium(self,driver,path,header=[],options=[]):
         from selenium import webdriver
         if driver=='chrome':
             from selenium.webdriver.chrome.options import Options
@@ -499,27 +499,31 @@ class Scrape_Db():
                 if 'noimages' in options:
                     prefs = {"profile.managed_default_content_settings.images":2}
                     chromeOptions.add_experimental_option("prefs",prefs)
-            return webdriver.Chrome(r'C:\Users\d.galbicsek\pywork\chromedriver.exe',chrome_options=chromeOptions)
+            return webdriver.Chrome(path,chrome_options=chromeOptions)
 
         elif driver=='phantomjs':
             service_args=[]
             if options:
                 if 'noimages' in options:
                     service_args=['--load-images=no']
-            return webdriver.PhantomJS(executable_path=r'C:\Users\d.galbicsek\pywork\phantomjs-2.1.1-windows\bin\phantomjs.exe',service_args=service_args)
+            return webdriver.PhantomJS(executable_path=path,service_args=service_args)
 
         else:
             print('!! Provide valid web driver.')
             return False
 
-    def selenium_waitfor(self,driver,xpath,visibility=False):
-        while not driver.find_elements_by_xpath(xpath):
+    def selenium_waitfor(self,driver,xpath,visibility=False,scrollto=True):
+        element=driver.find_elements_by_xpath(xpath)[0]
+        while not element:
             print('waiting for',xpath,sep=' ')
             time.sleep(1)
         if visibility:
-            while not driver.find_elements_by_xpath(xpath)[0].is_displayed():
+            while not element.is_displayed():
                 print('waiting for visibility of',xpath,sep=' ')
                 time.sleep(1)
+        if scrollto:
+            driver.execute_script("arguments[0].scrollIntoView();", element)
+        return element
 
 
     def parse_page(self,uid):
@@ -549,5 +553,4 @@ class Scrape_Db():
 
 ##########
 ##########
-
 

@@ -1,6 +1,8 @@
+from __future__ import print_function
+
 #
-# tested and works with scrrry v0.2.2
-#
+# workflow template - tested and works with scrrry v0.2.2
+# (https://raw.githubusercontent.com/DGalbichek/scrrry/79ca2a47b4dec4b9df637a8ee24d7c2dcf8929f5/scrrry.py)
 #
 
 from lxml import html
@@ -44,10 +46,10 @@ def gather():
     # there's room for all sorts of mumbo-jumbo here just make sure you
     # fill up iterr with the urls that will become your individual tasks
     subpages=[x.attrib['href'] for x in h.xpath('//whatever the xpath is')]
-        for sp in subpages:
-            hh=html.fromstring(requests.get(sp).text)
-            for x in hh.xpath('//whatever the xpath is')]:
-                iterr.append(x.attrib['href'])
+    for sp in subpages:
+        hh=html.fromstring(requests.get(sp).text)
+        for x in hh.xpath('//whatever the xpath is'):
+            iterr.append(x.attrib['href'])
 
     # set display options here
     display={'type':'brief','freq':1,'tick':20}

@@ -5,9 +5,9 @@ A Python data scraping framework. Works with both 2.7.13 and 3.6.3.
 
 ### Intro
 
-I've created this framework and will maintain it to aid my day-to-day data scraping at work. The workflow consists of a *GatherTask* followed by a *ScrapeTask*. The first one is to collect a somewhat trimmed version of the webpages and store them as individual tasks, while the second one is the offline data extraction. ```template.py``` is now included in the repo for reference.
+I've created this framework and will maintain it to aid my day-to-day data scraping at work. The workflow consists of a *GatherTask* followed by a *ScrapeTask*. The first one is to collect a somewhat trimmed version of the webpages (whatever source really) and store them as individual tasks, while the second one is the *offline* data extraction. ```template.py``` is now included in the repo for reference.
 
-It looks like this:
+It runs like this:
 
 ```
 ## -= scrrry v0.2.2 =- 
@@ -31,7 +31,7 @@ It looks like this:
 ## Script total runtime: 0h 0m 37.58s
 ```
 
-Looked at 44 pages, already had 10, gathered 34. Then scraped all 44 and exported to a spreadsheet.
+What happened above? The script looked at 44 pages, already had 10, gathered 34. Then scraped all 44, listed all the available columns and exported to a spreadsheet.
 
 ### Features:
 * sqlite db to store raw data in
@@ -47,5 +47,5 @@ Looked at 44 pages, already had 10, gathered 34. Then scraped all 44 and exporte
 
 ---
 This code is licensed under the MIT license.
-Copyright (c) 2017 David Galbicsek,
+Copyright (c) 2017-2018 David Galbicsek,
 See [here](https://github.com/DGalbichek/scrrry/blob/master/LICENSE) for details.
