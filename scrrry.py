@@ -273,7 +273,7 @@ class Scrape_Db():
                                 data.append(d)
                         else:
                             data.append(dii)
-                        if not nosubmit:
+                        if not nosubmit and dii:
                             self.done(it,dii)
                             pr=self.tc_done()
                         else:
