@@ -451,7 +451,7 @@ class Scrape_Db():
             }
 
             try:
-                r=requests.get(url, proxies=prox)
+                r=requests.get(url, proxies=prox, timeout=20)
             except:
                 r=None
             self.proxypos=(self.proxypos+1)%len(self.proxylist)
