@@ -4,7 +4,7 @@ from __future__ import print_function
 #   scrrry
 #   (a scraping framework)
 #
-VERSION='0.2.2'
+VERSION='0.2.3'
 #
 #   https://github.com/DGalbichek/scrrry/
 #
@@ -50,6 +50,8 @@ class Scrape_Db():
         self.task_name=task_name
         self.db = sqlite3.connect(self.task_name+'-db.sqlite')
         self.cursor = self.db.cursor()
+        self.proxylist=[]
+        self.proxypos=0
 
         if not multicall:
             try:
@@ -401,6 +403,7 @@ class Scrape_Db():
         else:
             return em
 
+
     def stripUrlTracking(self,u):
         rem=['?trk','?ref','?hc_ref','?business_id']
         for r in rem:
@@ -408,6 +411,57 @@ class Scrape_Db():
                 u=u.split(r)[0]
         return u
 
+
+    def _get_proxies(self, filtr={
+                    #'code':['US','CA'],
+                    'https':['yes',],
+                    'anonimity':['anonymous','elite proxy']
+                    }):
+        h=html.fromstring(requests.get('https://free-proxy-list.net/').text)
+
+        proxies=[]
+
+        for row in h.xpath('//tbody/tr'):
+            proxies.append({})
+            
+            d=[x.text.strip() for x in row.xpath('.//td')]
+            w=['ip','port','code','country','anonimity','google','https','last checked']
+            
+            for n,ww in enumerate(w):
+                proxies[-1][ww]=d[n]
+
+            if filtr:
+                for f in filtr:
+                    if proxies[-1][f] not in filtr[f]:
+                        proxies.pop(-1)
+                        break
+
+        return proxies
+
+
+    def get_with_rotating_proxies(self, url):
+        if not self.proxylist:
+            self.proxylist=self._get_proxies()
+        startpos=self.proxypos
+
+        while True:
+            prox= {
+                'http':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
+                'https':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
+            }
+
+            try:
+                r=requests.get(url, proxies=prox)
+            except:
+                r=None
+            self.proxypos=(self.proxypos+1)%len(self.proxylist)
+            if r and r.status_code==200:
+                break
+            if self.proxypos==startpos:
+                r=None
+                break
+        
+        return r
 
 
     ##
