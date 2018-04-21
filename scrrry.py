@@ -515,11 +515,12 @@ class Scrape_Db():
     def selenium_waitfor(self,driver,xpath,visibility=False,scrollto=True):
         element=driver.find_elements_by_xpath(xpath)[0]
         while not element:
-            print('waiting for',xpath,sep=' ')
+            element=driver.find_elements_by_xpath(xpath)[0]
+            #print('waiting for',xpath,sep=' ')
             time.sleep(1)
         if visibility:
             while not element.is_displayed():
-                print('waiting for visibility of',xpath,sep=' ')
+                #print('waiting for visibility of',xpath,sep=' ')
                 time.sleep(1)
         if scrollto:
             driver.execute_script("arguments[0].scrollIntoView();", element)
@@ -553,4 +554,4 @@ class Scrape_Db():
 
 ##########
 ##########
-
+            
