@@ -24,8 +24,16 @@ import time
 
 RE_EMAIL = r'''([a-zA-Z0-9\._%+-]+@[a-zA-Z0-9\.-]+(?:\.[a-zA-Z]{2,4})+)'''
 
+SURVEY_KEYWORDS = ['email-protection', 'ld+json', 'schema.org']
+
+
 def algofunctMultiWrapper(tup):
     return [tup[0](tup[1][x]) for x in range(tup[2][0],tup[2][1])]
+
+
+def survey_page(pagetext):
+    """Find recurring characteristics in a page's sourcecode."""
+    return [x for x in SURVEY_KEYWORDS if x in pagetext]
 
 
 class Scrape_Db():
