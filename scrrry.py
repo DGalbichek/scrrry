@@ -460,12 +460,14 @@ class Scrape_Db():
 
             try:
                 r=requests.get(url, proxies=prox, timeout=20)
+                if r and r.status_code==200:
+                    break
+                self.proxypos=(self.proxypos+1)%len(self.proxylist)
             except:
                 r=None
-            self.proxypos=(self.proxypos+1)%len(self.proxylist)
-            if r and r.status_code==200:
-                break
-            if self.proxypos==startpos:
+                self.proxylist.pop(self.proxypos)
+            
+            if not self.proxylist:
                 r=None
                 break
         
