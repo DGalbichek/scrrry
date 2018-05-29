@@ -447,7 +447,7 @@ class Scrape_Db():
         return proxies
 
 
-    def get_with_rotating_proxies(self, url):
+    def get_with_rotating_proxies(self, url, headers=[], timeout=20):
         if not self.proxylist:
             self.proxylist=self._get_proxies()
         startpos=self.proxypos
@@ -459,7 +459,10 @@ class Scrape_Db():
             }
 
             try:
-                r=requests.get(url, proxies=prox, timeout=20)
+                if headers:
+                    r=requests.get(url, proxies=prox, headers=headers, timeout=timeout)
+                except:
+                    r=requests.get(url, proxies=prox, timeout=timeout)
                 if r and r.status_code==200:
                     break
                 self.proxypos=(self.proxypos+1)%len(self.proxylist)
