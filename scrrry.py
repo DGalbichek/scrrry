@@ -563,6 +563,8 @@ class Scrape_Db():
                 for h in header:
                     opts.add_argument(h+'='+header[h])
             if options:
+                if 'incognito' in options:
+                    chromeOptions.add_argument("--incognito")
                 if 'noimages' in options:
                     prefs = {"profile.managed_default_content_settings.images":2}
                     chromeOptions.add_experimental_option("prefs",prefs)
