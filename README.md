@@ -37,6 +37,8 @@ What happened above? The script looked at 44 pages, already had 10, gathered 34.
 * sqlite db to store raw data in
 * a task management framework that helps with keeping track of what needs doing and how much time things are taking
 * 16/1/18 - new in **v0.2.2**: multi-threaded scraping (not for gathering)
+* 21/4/18 - new in **v0.2.3**: optional simple rotating proxy usage
+* 23/6/18 - new in **v0.2.4**: auto collecting emails and (phone)numbers
 
 ### Packages used
 

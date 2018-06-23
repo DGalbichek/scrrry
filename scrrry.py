@@ -4,7 +4,7 @@ from __future__ import print_function
 #   scrrry
 #   (a scraping framework)
 #
-VERSION='0.2.3'
+VERSION='0.2.4'
 #
 #   https://github.com/DGalbichek/scrrry/
 #
@@ -23,6 +23,7 @@ import sqlite3
 import time
 
 RE_EMAIL = r'''([a-zA-Z0-9\._%+-]+@[a-zA-Z0-9\.-]+(?:\.[a-zA-Z]{2,4})+)'''
+RE_PHONE = r'''([0-9\._+()-][0-9\._+() -]{5,}[0-9\._+()-])'''
 
 SURVEY_KEYWORDS = ['email-protection', 'ld+json', 'schema.org']
 
@@ -400,16 +401,44 @@ class Scrape_Db():
     ##
     ##  TOOLS
     ##
-    def emailInText(self,text,context=0):
-        em=list(set(re.findall(RE_EMAIL,text)))
-        r=[]
-        if em and context>0:
-            for e in em:
-                p=text.index(e)
-                r.append({'contactemail':e,'emailcontext':text[p-context:p+context]})
+    def getLDjson(self,lxmlhtml):
+        c=lxmlhtml.xpath('//script[@type="application/ld+json"]')
+        return c[0].text if c else ''
+
+
+    def getContactFromText(self,text,what,context=0):
+        whatd={'email':RE_EMAIL,'phone':RE_PHONE}
+        cd=list(set(re.findall(whatd[what],text)))
+        if cd and context>0:
+            r=[]
+            for c in cd:
+                p=text.index(c)
+                r.append([c, text[p-context:p+context].replace('\t','').replace('\n','').replace('\r','')])
             return r
         else:
-            return em
+            return cd
+
+
+    def emailInText(self,text,context=0):
+        """Masking method for backwards comp."""
+        return self.getContactFromText(text,'email',context)
+
+
+    def routineFindings(self,lxmlhtml,what=['ldjson','email','phone'],context=100):
+        findings=[]
+        if 'ldjson' in what:
+            f=self.getLDjson(lxmlhtml)
+            if f:
+                findings.append({'detail':f,'context':'ld+json'})
+        for wh in [w for w in what if w in ['email','phone']]:
+            fi=self.getContactFromText('|'.join([x for x in lxmlhtml.itertext()]),wh,context)
+            if wh=='email':
+                fi+=self.getContactFromText(html.tostring(lxmlhtml),'email',context)
+            if fi:
+                for n,f in enumerate(fi):
+                    if not [x for x in findings if x['detail']==f[0]]:
+                        findings.append({'detail':f[0],'context':f[1]})
+        return findings
 
 
     def stripUrlTracking(self,u):
