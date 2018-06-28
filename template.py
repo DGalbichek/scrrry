@@ -77,6 +77,12 @@ def scrapeTask(p):
     # do all your magic here and store your results in the dictionary
     dat['whatever']=h.xpath('//whatever the xpath is')[0].text
 
+    # some data mining below
+    h=scr.removeBlocks(h) # to clear unwanted html blocks (comment, script, style by default)
+    em=scr.routineFindings(h,what=['email',],context=0) #look for emails
+    if em:
+        dat['email']='|'.join(em)
+
     #print('\n',dat)
     return dat
 

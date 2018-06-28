@@ -401,6 +401,14 @@ class Scrape_Db():
     ##
     ##  TOOLS
     ##
+    def removeBlocks(self,lxmlhtml,blockstoremove=[['<!--', '-->'],['<script', '</script>'],['<style', '</style>']]):
+        ht=html.tostring(lxmlhtml)
+        for blk in blockstoremove:
+            while blk[0] in ht and blk[1] in ht and blk[1] in ht[ht.index(blk[0]):]:
+                ht=ht[:ht.index(blk[0])]+ht[ht.index(blk[1],ht.index(blk[0]))+len(blk[1]):]
+        return html.fromstring(ht)
+
+        
     def getLDjson(self,lxmlhtml):
         c=lxmlhtml.xpath('//script[@type="application/ld+json"]')
         return c[0].text if c else ''
@@ -408,7 +416,7 @@ class Scrape_Db():
 
     def getContactFromText(self,text,what,context=0):
         whatd={'email':RE_EMAIL,'phone':RE_PHONE}
-        cd=list(set(re.findall(whatd[what],text)))
+        cd=[x.strip('.- ') for x in set(re.findall(whatd[what],text))]
         if cd and context>0:
             r=[]
             for c in cd:
@@ -416,7 +424,7 @@ class Scrape_Db():
                 r.append([c, text[p-context:p+context].replace('\t','').replace('\n','').replace('\r','')])
             return r
         else:
-            return cd
+            return [[c,''] for c in cd]
 
 
     def emailInText(self,text,context=0):
@@ -424,7 +432,7 @@ class Scrape_Db():
         return self.getContactFromText(text,'email',context)
 
 
-    def routineFindings(self,lxmlhtml,what=['ldjson','email','phone'],context=100):
+    def routineFindings(self,lxmlhtml,what=['ldjson','email','phone'],context=100,exclusionlist=[]):
         findings=[]
         if 'ldjson' in what:
             f=self.getLDjson(lxmlhtml)
@@ -436,9 +444,13 @@ class Scrape_Db():
                 fi+=self.getContactFromText(html.tostring(lxmlhtml),'email',context)
             if fi:
                 for n,f in enumerate(fi):
-                    if not [x for x in findings if x['detail']==f[0]]:
+                    # check if already in findings or if on the exclusion list
+                    if not [x for x in findings if x['detail']==f[0]] and not [x for x in exclusionlist if f[0] in x]:
                         findings.append({'detail':f[0],'context':f[1]})
-        return findings
+        if context==0:
+            return [x['detail'] for x in findings if x['detail']]
+        else:
+            return findings
 
 
     def stripUrlTracking(self,u):
