@@ -490,7 +490,7 @@ class Scrape_Db():
             try:
                 if headers:
                     r=requests.get(url, proxies=prox, headers=headers, timeout=timeout)
-                except:
+                else:
                     r=requests.get(url, proxies=prox, timeout=timeout)
                 if r and r.status_code==200:
                     break
