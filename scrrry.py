@@ -361,6 +361,19 @@ class Scrape_Db():
         return data
 
 
+    def deleteTask(self,uid,feedback=True):
+        """Delete specified tasks.
+        """
+        if not isinstance(uid,list):
+            uid=[uid,]
+        for uu in uid:
+            self.cursor.execute('DELETE FROM scrapedata WHERE scrape_task_uid=?;',(uu,))
+            self.db.commit()
+            if feedback:
+                print('## DELETED',uu,sep=' ')
+        return True
+
+
     def clearDoneTask(self,uid,feedback=True):
         """Delete specified completed tasks but keeping tha tasks themselves.
         """
