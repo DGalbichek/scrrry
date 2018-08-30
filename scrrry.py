@@ -635,19 +635,22 @@ class Scrape_Db():
             print('!! Provide valid web driver.')
             return False
 
-    def selenium_waitfor(self,driver,xpath,visibility=False,scrollto=True):
-        element=driver.find_elements_by_xpath(xpath)[0]
+
+    def selenium_waitfor(self,driver,xpath,visibility=False,scrollto=True,report=False):
+        element=driver.find_elements_by_xpath(xpath)
         while not element:
-            element=driver.find_elements_by_xpath(xpath)[0]
-            #print('waiting for',xpath,sep=' ')
+            element=driver.find_elements_by_xpath(xpath)
+            if report:
+                print('waiting for',xpath,sep=' ')
             time.sleep(1)
         if visibility:
-            while not element.is_displayed():
-                #print('waiting for visibility of',xpath,sep=' ')
+            while not element[0].is_displayed():
+                if report:
+                    print('waiting for visibility of',xpath,sep=' ')
                 time.sleep(1)
         if scrollto:
-            driver.execute_script("arguments[0].scrollIntoView();", element)
-        return element
+            driver.execute_script("arguments[0].scrollIntoView();", element[0])
+        return element[0]
 
 
     def parse_page(self,uid):
