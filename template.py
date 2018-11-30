@@ -31,7 +31,9 @@ def gatherTask(it):
     Has to return scr.addTask()'''
     
     # could do all sorts of things in here, just remember this is for individual tasks
-    hh=html.fromstring(requests.get(it).text)
+    rt=requests.get(it).text
+    print(sc.survey_page(rt))
+    hh=html.fromstring(rt)
 
     # only take source code of section that matters
     content=html.tostring(hh.xpath('//whatever the xpath is')[0])
