@@ -447,13 +447,14 @@ class Scrape_Db():
 
     def routineFindings(self,lxmlhtml,what=['ldjson','email','phone'],context=100,exclusionlist=[]):
         findings=[]
-        if 'ldjson' in what:
+        ishtmlelement=isinstance(lxmlhtml,type(html.fromstring('<div></div>')))
+        if 'ldjson' in what and ishtmlelement:
             f=self.getLDjson(lxmlhtml)
             if f:
                 findings.append({'detail':f,'context':'ld+json'})
         for wh in [w for w in what if w in ['email','phone']]:
-            fi=self.getContactFromText('|'.join([x for x in lxmlhtml.itertext()]),wh,context)
-            if wh=='email':
+            fi=self.getContactFromText('|'.join([x for x in lxmlhtml.itertext()]) if ishtmlelement else lxmlhtml,wh,context)
+            if wh=='email' and ishtmlelement:
                 fi+=self.getContactFromText(html.tostring(lxmlhtml),'email',context)
             if fi:
                 for n,f in enumerate(fi):
