@@ -306,7 +306,7 @@ class Scrape_Db():
             pool = Pool(processes=NOOFPROC)
             #print('limit',LIMIT,'batch',BATCHSIZE,'noofproc',NOOFPROC,'-',math.ceil(LIMIT/BATCHSIZE))
             # batch creation
-            for nn in range(int(math.ceil(LIMIT/BATCHSIZE))):
+            for nn in range(int(LIMIT/BATCHSIZE)+1):
                 #print(nn,(nn*BATCHSIZE,nn*BATCHSIZE+BATCHSIZE,))
                 b1,b2=[],[]
                 for rrr in range(NOOFPROC):
