@@ -205,6 +205,15 @@ class Scrape_Db():
         return kkk
 
 
+    def _dataColumnsAvailable(self,data):
+        a=[x.keys() for x in data]
+        b=set()
+        for aa in a:
+            for aaa in aa:
+                b.add(aaa)
+        return list(b)
+
+
     def taskCycle(self,algofunct,iterr='def',display={'type':'verbose','freq':1,'tick':0},
                   unfold='',checktodo=False,nosubmit=False,multi={}):
         """Wrapper for gather and scrape tasks. Deals with time and output management.
@@ -352,13 +361,12 @@ class Scrape_Db():
 
         #list of column names
         if data:
-            a=[x.keys() for x in data]
-            b=set()
-            for aa in a:
-                for aaa in aa:
-                    b.add(aaa)
-            print('##',list(b),sep=' ')
+            print('## Available columns:', self._dataColumnsAvailable(data),sep=' ')
         return data
+
+
+    def unusedColumns(self,data,columns):
+        print('\n## Unused columns:', [x for x in self._dataColumnsAvailable(data) if x not in columns])
 
 
     def deleteTask(self,uid,feedback=True):
