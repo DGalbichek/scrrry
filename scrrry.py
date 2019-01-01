@@ -532,6 +532,7 @@ class Scrape_Db():
             except:
                 r=None
                 self.proxylist.pop(self.proxypos)
+                print('.',end=' ')
             
             if not self.proxylist:
                 r=None
