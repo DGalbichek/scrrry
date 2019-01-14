@@ -510,24 +510,35 @@ class Scrape_Db():
         return proxies
 
 
-    def get_with_rotating_proxies(self, url, headers=[], timeout=20):
+    def _requests_with_rotating_proxies(self, url, method='get', headers={}, data={}, timeout=20):
         if not self.proxylist:
             self.proxylist=self._get_proxies()
         startpos=self.proxypos
 
+        params={'timeout':timeout}
+        if headers:
+            params['headers']=headers
+        if data:
+            params['data']=data
+
         while True:
-            prox= {
+            params['proxies']={
                 'http':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
                 'https':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
             }
 
             try:
-                if headers:
-                    r=requests.get(url, proxies=prox, headers=headers, timeout=timeout)
-                else:
-                    r=requests.get(url, proxies=prox, timeout=timeout)
+                if method=='get':
+                    r=requests.get(url, **params)
+                elif method=='post':
+                    r=requests.post(url, **params)
+                    print('post',r.status_code)
+
                 if r and r.status_code==200:
                     break
+                elif r and r.status_code==404:
+                    print('!404!',url)
+                    return None
                 self.proxypos=(self.proxypos+1)%len(self.proxylist)
             except:
                 r=None
@@ -539,6 +550,14 @@ class Scrape_Db():
                 break
         
         return r
+
+
+    def get_with_rotating_proxies(self, url, headers={}, timeout=20):
+        return self._requests_with_rotating_proxies(url, method='get', headers=headers, timeout=timeout)
+
+
+    def post_with_rotating_proxies(self, url, headers={}, data={}, timeout=20):
+        return self._requests_with_rotating_proxies(url, method='post', headers=headers, data=data, timeout=timeout)
 
 
     ##
