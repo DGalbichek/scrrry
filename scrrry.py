@@ -580,10 +580,15 @@ class Scrape_Db():
             return self.tc_done(standalone=standalone)
 
 
-
-
-
-
+    def removeTask(self,uid,feedback=True):
+        if self.cursor.execute('''SELECT id FROM scrapedata WHERE scrape_task_uid=?;''',(uid,)).fetchone():
+            self.cursor.execute('''DELETE FROM scrapedata WHERE scrape_task_uid=?;''',(uid,)).fetchone()
+            self.db.commit()
+            if feedback:
+                print('## '+uid+' REMOVED')
+        else:
+            if feedback:
+                print('## '+uid+' not found!')
 
 
 
