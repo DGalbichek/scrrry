@@ -34,7 +34,7 @@ def algofunctMultiWrapper(tup):
 
 def survey_page(pagetext):
     """Find recurring characteristics in a page's sourcecode."""
-    return [x for x in SURVEY_KEYWORDS if x in pagetext]
+    return [x for x in SURVEY_KEYWORDS if x in str(pagetext)]
 
 
 class Scrape_Db():
