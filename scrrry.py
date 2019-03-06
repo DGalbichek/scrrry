@@ -194,14 +194,19 @@ class Scrape_Db():
             return 'X'
 
     def tc_unfold(self,dic,key):
+        def merge_two_dicts(x, y):
+            z = x.copy()
+            z.update(y)
+            return z
+
         kkk=[]
         g=dict(dic)
         if dic[key]:
             del g[key]
             for s in dic[key]:
-                kkk.append(dict(g.items()+s.items()))
+                kkk.append(merge_two_dicts(g,s))
         else:
-            kkk.append(dict(g.items()))
+            kkk.append(dic)
         return kkk
 
 
