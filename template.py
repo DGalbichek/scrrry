@@ -112,6 +112,7 @@ def writeexcel():
     # specify column names you want to be exported (and their order)
     columns=['whateverfield','whatever']
 
+    scr.unusedColumns(data,columns)
     print('\n## ... Writing to Excel spreadsheet > '+ TASK_NAME+'.xlsx',end=' ')
     pd.DataFrame(data, columns=columns).to_excel(TASK_NAME+'.xlsx')
     print('Done.')
