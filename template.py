@@ -31,7 +31,9 @@ def gatherTask(it):
     Has to return scr.addTask()'''
     
     # could do all sorts of things in here, just remember this is for individual tasks
-    rt=requests.get(it).text
+    #r=requests.get(it) # plain request
+    r=scr.get_with_rotating_proxies(it) # request through proxy
+    rt=r.text.encode(r.encoding)
     print(sc.survey_page(rt))
     hh=html.fromstring(rt)
 
