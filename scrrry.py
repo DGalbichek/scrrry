@@ -547,6 +547,9 @@ class Scrape_Db():
                 elif r and r.status_code==404:
                     print('!404!',url)
                     return None
+                elif r.status_code == 500:
+                    print('!500!',url)
+                    return None
                 self.proxypos=(self.proxypos+1)%len(self.proxylist)
             except:
                 r=None
