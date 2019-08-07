@@ -500,7 +500,7 @@ class Scrape_Db():
 
         proxies=[]
 
-        for row in h.xpath('//tbody/tr'):
+        for row in h.xpath('//table[@id="proxylisttable"]/tbody/tr'):
             proxies.append({})
             
             d=[x.text.strip() for x in row.xpath('.//td')]
