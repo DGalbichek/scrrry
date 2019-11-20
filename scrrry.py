@@ -343,8 +343,13 @@ class Scrape_Db():
 
                 res=pool.map_async(algofunctMultiWrapper, [(algofunct, iterr, x) for x in zip(b1,b2)])
                 for r in res.get():
-                    for rr in r:
-                        data.append(rr)
+                    if unfold:
+                        for rr in r:
+                            for d in self.tc_unfold(rr,unfold):
+                                data.append(d)
+                    else:
+                        for rr in r:
+                            data.append(rr)
 
                 postprint(min((nn+1)*BATCHSIZE-1,LIMIT-1), multi=True)
 
