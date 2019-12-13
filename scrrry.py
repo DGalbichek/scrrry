@@ -524,17 +524,19 @@ class Scrape_Db():
 
 
     def _requests_with_rotating_proxies(self, url, method='get', headers={}, data={}, timeout=20):
-        if not self.proxylist:
-            self.proxylist=self._get_proxies()
-        startpos=self.proxypos
-
         params={'timeout':timeout}
         if headers:
             params['headers']=headers
         if data:
             params['data']=data
 
+        no_of_proxy_setups = 0
         while True:
+            if not self.proxylist:
+                self.proxylist = self._get_proxies()
+                self.proxypos = 0
+                no_of_proxy_setups += 1
+
             params['proxies']={
                 'http':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
                 'https':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
@@ -559,9 +561,11 @@ class Scrape_Db():
             except:
                 r=None
                 self.proxylist.pop(self.proxypos)
+                if self.proxylist and len(self.proxylist) == self.proxypos:
+                    self.proxypos = 0
                 print('.',end=' ')
             
-            if not self.proxylist:
+            if not self.proxylist and no_of_proxy_setups > 1:
                 r=None
                 break
         
