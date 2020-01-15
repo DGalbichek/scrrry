@@ -163,6 +163,7 @@ class Scrape_Db():
         elif self.tc_disptype=='brief':
             return '+'
 
+
     def tc_wasdone(self,plus='',standalone=False):
         if standalone:
             print('was already done',end=' ')
@@ -172,6 +173,7 @@ class Scrape_Db():
             return 'was already done '+plus+'\n'
         elif self.tc_disptype=='brief':
             return '='
+
 
     def tc_skipped(self,plus='',standalone=False):
         if standalone:
@@ -183,6 +185,7 @@ class Scrape_Db():
         elif self.tc_disptype=='brief':
             return 's'
 
+
     def tc_nodata(self,plus='',standalone=False):
         if standalone:
             print('NO DATA',end=' ')
@@ -192,6 +195,7 @@ class Scrape_Db():
             return 'NO DATA obtained '+plus+'\n'
         elif self.tc_disptype=='brief':
             return 'X'
+
 
     def tc_unfold(self,dic,key):
         def merge_two_dicts(x, y):
@@ -211,7 +215,7 @@ class Scrape_Db():
 
 
     def _dataColumnsAvailable(self,data):
-        a=[x.keys() for x in data]
+        a=[x.keys() for x in data if x]
         b=set()
         for aa in a:
             for aaa in aa:

@@ -1,7 +1,7 @@
 scrrry
 ======
 
-A Python data scraping framework. Works with both 2.7.13 and 3.6.3.
+A Python data scraping framework. Tested with 3.7.4.
 
 ### Intro
 
@@ -49,5 +49,5 @@ What happened above? The script looked at 44 pages, already had 10, gathered 34.
 
 ---
 This code is licensed under the MIT license.
-Copyright (c) 2017-2018 David Galbicsek,
+Copyright (c) 2017-2020 David Galbicsek,
 See [here](https://github.com/DGalbichek/scrrry/blob/master/LICENSE) for details.
