@@ -451,6 +451,7 @@ class Scrape_Db():
 
     def getContactFromText(self,text,what,context=0):
         whatd={'email':RE_EMAIL,'phone':RE_PHONE}
+        text=str(text)
         try:
             cd=[x.strip('.- ') for x in set(re.findall(whatd[what],unicode(text)))]
         except:
