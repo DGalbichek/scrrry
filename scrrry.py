@@ -36,7 +36,17 @@ def survey_page(pagetext):
     """Find recurring characteristics in a page's sourcecode."""
     return [x for x in SURVEY_KEYWORDS if x in str(pagetext)]
 
+	
+def decode_email(ee):
+	"""Decode email protection."""
+    try:
+        r = int(ee[:2], 16)
+        email = ''.join([chr(int(ee[i:i+2], 16) ^ r) for i in range(2, len(ee), 2)])
+        return email
+    except (ValueError):
+        return ''
 
+		
 class Scrape_Db():
     def __init__(self,task_name,ver_check=True,multicall=False):
         if not multicall:
