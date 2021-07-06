@@ -38,7 +38,7 @@ def survey_page(pagetext):
 
 	
 def decode_email(ee):
-	"""Decode email protection."""
+    """Decode email protection."""
     try:
         r = int(ee[:2], 16)
         email = ''.join([chr(int(ee[i:i+2], 16) ^ r) for i in range(2, len(ee), 2)])
@@ -523,7 +523,10 @@ class Scrape_Db():
         for row in h.xpath('//table[@id="proxylisttable"]/tbody/tr'):
             proxies.append({})
             
-            d=[x.text.strip() for x in row.xpath('.//td')]
+            try:
+                d=[x.text.strip() for x in row.xpath('.//td')]
+            except:
+                break
             w=['ip','port','code','country','anonimity','google','https','last checked']
             
             for n,ww in enumerate(w):
