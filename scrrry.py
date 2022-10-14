@@ -520,7 +520,7 @@ class Scrape_Db():
 
         proxies=[]
 
-        for row in h.xpath('//table[@id="proxylisttable"]/tbody/tr'):
+        for row in h.xpath('//div[@class="table-responsive fpl-list"]/table/tbody/tr'):
             proxies.append({})
             
             try:
