@@ -522,9 +522,8 @@ class Scrape_Db():
 
         for row in h.xpath('//div[@class="table-responsive fpl-list"]/table/tbody/tr'):
             proxies.append({})
-            
             try:
-                d=[x.text.strip() for x in row.xpath('.//td')]
+                d=[x.text.strip() if x.text else '' for x in row.xpath('.//td')]
             except:
                 break
             w=['ip','port','code','country','anonimity','google','https','last checked']
@@ -554,13 +553,12 @@ class Scrape_Db():
                 self.proxylist = self._get_proxies()
                 self.proxypos = 0
                 no_of_proxy_setups += 1
-
-            params['proxies']={
-                'http':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
-                'https':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
-            }
-
             try:
+                params['proxies']={
+                    'http':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
+                    'https':'http://'+self.proxylist[self.proxypos]['ip']+':'+self.proxylist[self.proxypos]['port'],
+                }
+
                 if method=='get':
                     r=requests.get(url, **params)
                 elif method=='post':
@@ -572,10 +570,11 @@ class Scrape_Db():
                 elif r and r.status_code==404:
                     print('!404!',url)
                     return None
-                elif r.status_code == 500:
+                elif r and r.status_code == 500:
                     print('!500!',url)
                     return None
-                self.proxypos=(self.proxypos+1)%len(self.proxylist)
+
+                self.proxypos = (self.proxypos + 1) % len(self.proxylist)
             except:
                 r=None
                 self.proxylist.pop(self.proxypos)
